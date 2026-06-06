@@ -103,3 +103,4 @@ public class JWTHeaderKIDEndpoint implements AssignmentEndpoint {
     }
   }
 }
+

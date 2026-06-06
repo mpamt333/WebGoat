@@ -1,0 +1,32 @@
+# Bước 1: Build code
+FROM eclipse-temurin:25-jdk-noble AS build
+
+WORKDIR /app
+
+# Copy các file build chính vào trước
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Cài đặt công cụ và sửa file ngay tại chỗ
+RUN apt-get update && apt-get install -y dos2unix && \
+    dos2unix mvnw && \
+    chmod +x mvnw
+
+# Bây giờ mới copy source code
+COPY src src
+
+# Chạy build (Lệnh này tốn RAM nhất)
+RUN ./mvnw clean package -DskipTests
+
+# Bước 2: Tạo image chạy
+FROM eclipse-temurin:25-jre-noble
+WORKDIR /home/webgoat
+
+# Copy file jar đã build thành công
+COPY --from=build /app/target/webgoat-*.jar /home/webgoat/webgoat.jar
+
+USER 1000
+EXPOSE 8080
+EXPOSE 9090
+ENTRYPOINT ["java", "-jar", "/home/webgoat/webgoat.jar"]
